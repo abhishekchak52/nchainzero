@@ -64,7 +64,7 @@ def score_model(model, num_tests, render=False):
     env.close()
     return np.mean(scores)
 
-def policy_gradient_nn(env,num_episodes=10000):
+def policy_gradient_nn(env,num_games=100):
     model_train, model_predict = get_policy_model(env, hidden_layer_neurons, lr)
     reward = 0
     reward_sum = 0
@@ -83,22 +83,24 @@ def policy_gradient_nn(env,num_episodes=10000):
     losses = []
     scores_list = []
 
-    for num_episode in range(num_episodes):
-        # Append the observations to our batch
-        state = np.reshape(observation, [1, dimen])
-        
-        predict = model_predict.predict([state])[0]
-        action = np.random.choice(range(num_actions),p=predict)
-        
-        # Append the observations and outputs for learning
-        states = np.vstack([states, state])
-        actions = np.vstack([actions, action])
-        
-        # Determine the oucome of our action
-        observation, reward, done, _ = env.step(action)
-        reward_sum += reward
-        rewards = np.vstack([rewards, reward])
-        print(num_episode)
+    for num_game in trange(num_games):
+
+        done  = False
+        while not done:
+            # Append the observations to our batch
+            state = np.reshape(observation, [1, dimen])
+            
+            predict = model_predict.predict([state])[0]
+            action = np.random.choice(range(num_actions),p=predict)
+            
+            # Append the observations and outputs for learning
+            states = np.vstack([states, state])
+            actions = np.vstack([actions, action])
+            
+            # Determine the oucome of our action
+            observation, reward, done, _ = env.step(action)
+            reward_sum += reward
+            rewards = np.vstack([rewards, reward])
         
         if done:
             # Determine standardized rewards
@@ -106,7 +108,7 @@ def policy_gradient_nn(env,num_episodes=10000):
             discounted_rewards = np.vstack([discounted_rewards, discounted_rewards_episode])
             
             rewards = np.empty(0).reshape(0,1)
-            if (num_episode + 1) % batch_size == 0:
+            if (num_game + 1) % batch_size == 0:
                 discounted_rewards -= discounted_rewards.mean()
                 discounted_rewards /= discounted_rewards.std()
                 discounted_rewards = discounted_rewards.squeeze()
@@ -125,7 +127,7 @@ def policy_gradient_nn(env,num_episodes=10000):
 
 
             # Print periodically
-            if (num_episode + 1) % print_every == 0:
+            if (num_game + 1) % print_every == 0:
                 # Print status
                 score = score_model(model_predict,10)
                 # print("Average reward for training episode {}: {:0.2f} Test Score: {:0.2f} Loss: {:0.6f} ".format(
@@ -139,7 +141,7 @@ def policy_gradient_nn(env,num_episodes=10000):
                 reward_sum = 0
             observation = env.reset()
             
-    print(scores_list)
+    # print(scores_list)
 
 if __name__=='__main__':
     env = gym.make('NChain-v0')
@@ -148,8 +150,8 @@ if __name__=='__main__':
     hidden_layer_neurons = 10
     gamma = .99
     dimen = 1
-    print_every = 50
-    batch_size = 10
+    print_every = 10
+    batch_size = 5
     render = False
     lr = 1e-2
     goal = 5000
