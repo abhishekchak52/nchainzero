@@ -18,7 +18,7 @@ def eps_q_learn_nn_train(env, num_episodes=500):
     eps = 0.5
     decay_factor = 0.999
     r_avg_list = []
-    for i in trange(num_episodes):
+    for _ in trange(num_episodes):
         s = env.reset()
         eps *= decay_factor
         done = False
