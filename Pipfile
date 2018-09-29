@@ -14,5 +14,4 @@ gym = "*"
 tensorflow = "*"
 keras = "*"
 tqdm = "*"
-keras-rl = "*"
-torch = {file = "http://download.pytorch.org/whl/cpu/torch-0.4.1-cp35-cp35m-win_amd64.whl"}
+matplotlib = "*"
